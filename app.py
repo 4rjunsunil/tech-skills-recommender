@@ -42,16 +42,22 @@ except ValueError as error:
     st.stop()
 
 with st.sidebar:
-    st.metric("Sample job descriptions", len(job_ads))
+    st.metric("Job descriptions in dataset", len(job_ads))
     st.caption(
-        "The included listings are synthetic examples written for this demo. "
-        "They are not real job ads or live market research."
+        "This role-focused sample contains real postings with scrape timestamps "
+        "mainly from November 2023. It is historical data, not a live job feed "
+        "or a measure of current demand."
     )
     st.divider()
     st.markdown(
         "**How keywords are extracted**  \n"
         "NLTK tokenizes each description and extracts recurring one-, two-, and "
         "three-word keywords. Each keyword counts at most once per posting."
+    )
+    st.markdown(
+        "**Data source**  \n"
+        "[xanderios/linkedin-job-postings](https://huggingface.co/datasets/"
+        "xanderios/linkedin-job-postings), labeled MIT."
     )
 
 query = st.text_input(
@@ -63,8 +69,8 @@ if query.strip():
     matching_jobs = filter_jobs_by_title(job_ads, query)
     if matching_jobs.empty:
         st.warning(
-            "No matching job titles were found. Try one of the roles in the sample dataset: "
-            + ", ".join(sorted(job_ads["job_title"].dropna().unique()))
+            "No matching job titles were found. Try Data Analyst, Data Scientist, "
+            "Data Engineer, Software Engineer, Software Developer, or Product Analyst."
         )
     else:
         skill_results = rank_skills(matching_jobs)
@@ -85,7 +91,7 @@ if query.strip():
                 "Number of skills to display",
                 min_value=1,
                 max_value=min(20, len(skill_results)),
-                value=min(10, len(skill_results)),
+                value=min(5, len(skill_results)),
             )
             visible_skills = skill_results.head(top_n)
             chart = px.bar(
@@ -122,7 +128,11 @@ if query.strip():
             )
             st.dataframe(display_results, hide_index=True, width="stretch")
 
-            csv_data = visible_skills.to_csv(index=False).encode("utf-8-sig")
+            csv_export = visible_skills.assign(
+                source=matching_jobs["source_type"].iloc[0],
+                source_url="https://huggingface.co/datasets/xanderios/linkedin-job-postings",
+            )
+            csv_data = csv_export.to_csv(index=False).encode("utf-8-sig")
             pdf_data = build_pdf_report(query.strip(), len(matching_jobs), visible_skills)
             csv_column, pdf_column = st.columns(2)
             csv_column.download_button(
@@ -140,7 +150,7 @@ if query.strip():
                 width="stretch",
             )
 
-            with st.expander("View matching sample job descriptions"):
+            with st.expander("View matching job descriptions"):
                 st.dataframe(
                     matching_jobs[["job_title", "job_description"]],
                     hide_index=True,

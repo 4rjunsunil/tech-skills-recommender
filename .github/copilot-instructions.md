@@ -20,18 +20,21 @@ Build a Python-powered data app that recommends top technical skills based on a 
 
 ## Implementation expectations
 - Keep the app simple, polished, and easy to run locally.
-- Store the demo data in `data/job_ads.csv`; document its schema and provenance.
+- Store the prepared role-focused dataset in `data/job_ads.csv`; document its schema, source, license label, and limitations.
+- Keep a reproducible preparation script in `data/prepare_job_ads.py` for creating the subset from the downloaded source CSV.
 - Use Pandas to validate, clean, and preprocess CSV text data.
 - Use NLTK to tokenize descriptions and extract recurring keywords (candidate skills), rather than relying only on a hand-maintained skill dictionary.
 - Rank keywords by the number of matching job postings that mention them; count each keyword at most once per posting.
 - Present the output in a clear, user-friendly dashboard.
 - Keep code organised into modules if the app grows beyond a single file.
-- Clearly distinguish synthetic examples from real job-market evidence.
+- Clearly state that the included real postings are historical and are not live job-market evidence.
+- Preserve source attribution and check dataset rights before redistributing any job-description text.
 - Document how to deploy the app to Streamlit Community Cloud from the GitHub repository.
 
 ## Suggested project structure
 - `app.py` or `main.py` for the Streamlit entry point
 - `data/` for CSV datasets
+- `data/prepare_job_ads.py` for preparing the source dataset subset
 - `src/` for skill analysis and export helpers
 - `tests/` for automated tests
 - `requirements.txt` for Python dependencies

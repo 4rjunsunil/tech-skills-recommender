@@ -34,7 +34,7 @@ def build_pdf_report(job_title: str, job_count: int, skills: pd.DataFrame) -> by
         Paragraph("Tech Skills Recommender", styles["Title"]),
         Paragraph(f"Results for: {job_title}", styles["Heading2"]),
         Paragraph(
-            f"Based on {job_count} matching sample job descriptions.",
+            f"Based on {job_count} matching historical job postings.",
             styles["BodyText"],
         ),
         Spacer(1, 14),
@@ -66,8 +66,9 @@ def build_pdf_report(job_title: str, job_count: int, skills: pd.DataFrame) -> by
             table,
             Spacer(1, 14),
             Paragraph(
-                "Note: the included job descriptions are synthetic demo data. "
-                "Results illustrate the analysis workflow and are not live labour-market data.",
+                "Source: xanderios/linkedin-job-postings on Hugging Face (dataset "
+                "repository labeled MIT). These are historical postings, not live "
+                "vacancies or current labour-market evidence.",
                 styles["Italic"],
             ),
         ]
