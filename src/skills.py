@@ -1,62 +1,142 @@
-"""Job-title filtering and dictionary-based skill frequency analysis."""
+"""Job-title filtering and NLTK-based keyword extraction."""
 
 from __future__ import annotations
 
 import re
+from collections import Counter
 
 import pandas as pd
+from nltk.probability import FreqDist
+from nltk.tokenize import RegexpTokenizer
+from nltk.util import ngrams
 
-SKILL_PATTERNS: dict[str, tuple[str, ...]] = {
-    "AWS": ("AWS", "Amazon Web Services"),
-    "Azure": ("Azure", "Microsoft Azure"),
-    "C++": ("C++",),
-    "C#": ("C#", "C sharp"),
-    "Communication": ("communication", "communicate"),
-    "Data analysis": ("data analysis", "analyze data", "analyse data"),
-    "Data cleaning": ("data cleaning", "cleaning data", "data cleansing"),
-    "Data visualization": ("data visualization", "data visualisation", "data viz"),
-    "Excel": ("Excel", "Microsoft Excel"),
-    "Git": ("Git", "GitHub", "GitLab"),
-    "Java": ("Java",),
-    "JavaScript": ("JavaScript",),
-    "Machine learning": ("machine learning", "ML models"),
-    "Matplotlib": ("Matplotlib",),
-    "Power BI": ("Power BI", "PowerBI"),
-    "NLP": ("natural language processing", "NLP"),
-    "NoSQL": ("NoSQL", "MongoDB", "Cassandra"),
-    "Pandas": ("Pandas",),
-    "PostgreSQL": ("PostgreSQL", "Postgres"),
-    "Python": ("Python",),
-    "PyTorch": ("PyTorch",),
-    "R": ("R programming", "R language"),
-    "REST APIs": ("REST API", "RESTful API", "REST APIs"),
-    "scikit-learn": ("scikit-learn", "sklearn"),
-    "SQL": ("SQL",),
-    "Statistics": ("statistics", "statistical analysis"),
-    "Tableau": ("Tableau",),
-    "TensorFlow": ("TensorFlow",),
-    "Testing": ("unit testing", "automated testing", "test automation"),
-    "Docker": ("Docker",),
-    "Kubernetes": ("Kubernetes",),
-    "Linux": ("Linux",),
-    "Spark": ("Apache Spark", "PySpark", "Spark"),
+REQUIRED_COLUMNS = {"job_title", "job_description", "source_type"}
+
+_TOKENIZER = RegexpTokenizer(r"[A-Za-z0-9]+(?:[+#.][A-Za-z0-9+#.]*)*")
+_STOP_WORDS = {
+    "a",
+    "about",
+    "an",
+    "and",
+    "are",
+    "as",
+    "at",
+    "be",
+    "by",
+    "business",
+    "create",
+    "customer",
+    "develop",
+    "findings",
+    "for",
+    "from",
+    "insights",
+    "in",
+    "into",
+    "is",
+    "it",
+    "job",
+    "large",
+    "maintain",
+    "operational",
+    "of",
+    "on",
+    "or",
+    "our",
+    "prepare",
+    "project",
+    "projects",
+    "provide",
+    "reliable",
+    "role",
+    "share",
+    "stakeholder",
+    "stakeholders",
+    "support",
+    "team",
+    "teams",
+    "the",
+    "their",
+    "then",
+    "this",
+    "to",
+    "through",
+    "use",
+    "using",
+    "with",
+    "write",
+    "query",
+    "queries",
+}
+_SINGLE_WORD_STOP_WORDS = _STOP_WORDS | {
+    "analyse",
+    "analysis",
+    "analyze",
+    "bi",
+    "build",
+    "clean",
+    "cleaning",
+    "dataset",
+    "explain",
+    "data",
+    "experience",
+    "new",
+    "power",
+    "present",
+    "report",
+    "reports",
+    "senior",
+    "work",
+    "dataset",
+    "datasets",
+    "insight",
+}
+_DISPLAY_NAMES = {
+    "api": "API",
+    "apis": "APIs",
+    "aws": "AWS",
+    "c#": "C#",
+    "c++": "C++",
+    "etl": "ETL",
+    "excel": "Excel",
+    "github": "GitHub",
+    "javascript": "JavaScript",
+    "linux": "Linux",
+    "mongodb": "MongoDB",
+    "nlp": "NLP",
+    "nosql": "NoSQL",
+    "pandas": "Pandas",
+    "postgresql": "PostgreSQL",
+    "power bi": "Power BI",
+    "pytorch": "PyTorch",
+    "python": "Python",
+    "rest api": "REST API",
+    "rest apis": "REST APIs",
+    "r": "R",
+    "sql": "SQL",
+    "tableau": "Tableau",
+    "tensorflow": "TensorFlow",
 }
 
 
-def _compile_skill_patterns() -> dict[str, re.Pattern[str]]:
-    patterns: dict[str, re.Pattern[str]] = {}
-    for skill, aliases in SKILL_PATTERNS.items():
-        alternatives = "|".join(
-            sorted((re.escape(alias) for alias in aliases), key=len, reverse=True)
+def clean_job_ads(jobs: pd.DataFrame) -> pd.DataFrame:
+    """Validate and clean the CSV columns used by the app."""
+    missing_columns = REQUIRED_COLUMNS.difference(jobs.columns)
+    if missing_columns:
+        raise ValueError(
+            "The job ads CSV is missing required columns: "
+            + ", ".join(sorted(missing_columns))
         )
-        patterns[skill] = re.compile(
-            rf"(?<![A-Za-z0-9])(?:{alternatives})(?![A-Za-z0-9])",
-            flags=re.IGNORECASE,
-        )
-    return patterns
 
-
-_COMPILED_SKILLS = _compile_skill_patterns()
+    cleaned = jobs.copy()
+    cleaned["job_title"] = cleaned["job_title"].fillna("").astype(str).str.strip()
+    cleaned["job_description"] = (
+        cleaned["job_description"].fillna("").astype(str).str.strip()
+    )
+    cleaned["source_type"] = cleaned["source_type"].fillna("").astype(str).str.strip()
+    return cleaned[
+        cleaned["job_title"].ne("") & cleaned["job_description"].ne("")
+    ].reset_index(drop=True)
 
 
 def filter_jobs_by_title(jobs: pd.DataFrame, query: str) -> pd.DataFrame:
@@ -74,21 +154,61 @@ def filter_jobs_by_title(jobs: pd.DataFrame, query: str) -> pd.DataFrame:
     return jobs[contains_query | contains_all_terms].copy()
 
 
+def _display_keyword(keyword: str) -> str:
+    display_name = _DISPLAY_NAMES.get(keyword)
+    if display_name:
+        return display_name
+    return " ".join(token.capitalize() for token in keyword.split())
+
+
 def rank_skills(jobs: pd.DataFrame) -> pd.DataFrame:
-    """Rank skills by the number of matching job postings, highest first."""
+    """Extract NLTK unigram, bigram, and trigram keywords by posting frequency."""
     if jobs.empty:
         return pd.DataFrame(columns=["skill", "job_count", "share_percent"])
 
-    descriptions = jobs["job_description"].fillna("").astype(str)
-    counts = {
-        skill: int(descriptions.map(lambda text: bool(pattern.search(text))).sum())
-        for skill, pattern in _COMPILED_SKILLS.items()
-    }
+    keyword_document_counts: Counter[str] = Counter()
+    document_keywords: list[set[str]] = []
+
+    for description in jobs["job_description"].fillna("").astype(str):
+        keywords: set[str] = set()
+        for segment in re.split(r"(?<=[,;.!?])\s+|\n+", description):
+            tokens = [
+                token.casefold().rstrip(".")
+                for token in _TOKENIZER.tokenize(segment)
+                if token.casefold().rstrip(".")
+            ]
+            keywords.update(
+                " ".join(term)
+                for size in range(1, 4)
+                for term in ngrams(tokens, size)
+                if (
+                    (
+                        term[0] not in _SINGLE_WORD_STOP_WORDS
+                        if size == 1
+                        else not any(token in _STOP_WORDS for token in term)
+                    )
+                    and not (
+                        size == 1
+                        and len(term[0]) == 1
+                        and term[0] not in {"r"}
+                    )
+                )
+            )
+        document_keywords.append(keywords)
+        keyword_document_counts.update(keywords)
+
+    filtered_counts: FreqDist[str] = FreqDist()
+    for keyword, count in keyword_document_counts.items():
+        filtered_counts[keyword] = count
+
     results = pd.DataFrame(
         [
-            {"skill": skill, "job_count": count, "share_percent": count / len(jobs) * 100}
-            for skill, count in counts.items()
-            if count
+            {
+                "skill": _display_keyword(keyword),
+                "job_count": count,
+                "share_percent": count / len(document_keywords) * 100,
+            }
+            for keyword, count in filtered_counts.items()
         ]
     )
     if results.empty:

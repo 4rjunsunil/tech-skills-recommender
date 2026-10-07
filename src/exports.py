@@ -40,7 +40,7 @@ def build_pdf_report(job_title: str, job_count: int, skills: pd.DataFrame) -> by
         Spacer(1, 14),
     ]
 
-    rows = [["Skill", "Job postings", "Share"]]
+    rows = [["Keyword / candidate skill", "Job postings", "Share"]]
     rows.extend(
         [
             [row.skill, str(row.job_count), f"{row.share_percent:.0f}%"]

@@ -7,10 +7,9 @@ import plotly.express as px
 import streamlit as st
 
 from src.exports import build_pdf_report
-from src.skills import filter_jobs_by_title, rank_skills
+from src.skills import clean_job_ads, filter_jobs_by_title, rank_skills
 
 DATA_PATH = Path(__file__).parent / "data" / "job_ads.csv"
-REQUIRED_COLUMNS = {"job_title", "job_description", "source_type"}
 
 st.set_page_config(
     page_title="Tech Skills Recommender",
@@ -21,14 +20,7 @@ st.set_page_config(
 
 @st.cache_data
 def load_job_ads(path: str) -> pd.DataFrame:
-    jobs = pd.read_csv(path)
-    missing_columns = REQUIRED_COLUMNS.difference(jobs.columns)
-    if missing_columns:
-        raise ValueError(
-            "The job ads CSV is missing required columns: "
-            + ", ".join(sorted(missing_columns))
-        )
-    return jobs
+    return clean_job_ads(pd.read_csv(path))
 
 
 st.title("Tech Skills Recommender")
@@ -58,9 +50,9 @@ with st.sidebar:
     )
     st.divider()
     st.markdown(
-        "**How skills are counted**  \n"
-        "A curated list of technical skills and aliases is matched against each "
-        "description. Each skill counts at most once per posting."
+        "**How keywords are extracted**  \n"
+        "NLTK tokenizes each description and extracts recurring one-, two-, and "
+        "three-word keywords. Each keyword counts at most once per posting."
     )
 
 query = st.text_input(
@@ -78,12 +70,17 @@ if query.strip():
     else:
         skill_results = rank_skills(matching_jobs)
         if skill_results.empty:
-            st.info("No skills from the current skill list were found in these descriptions.")
+            st.info("No keywords were found in these descriptions.")
         else:
-            st.subheader(f"Skills for “{query.strip()}”")
+            st.subheader(f"Extracted keywords for “{query.strip()}”")
+            st.caption(
+                "Keywords are extracted from the descriptions, not matched against "
+                "a fixed skill dictionary. Some frequent terms may need human review "
+                "to confirm they are skills."
+            )
             first, second = st.columns(2)
             first.metric("Matching job descriptions", len(matching_jobs))
-            second.metric("Skills identified", len(skill_results))
+            second.metric("Keywords extracted", len(skill_results))
 
             top_n = st.slider(
                 "Number of skills to display",
@@ -99,7 +96,7 @@ if query.strip():
                 orientation="h",
                 labels={
                     "job_count": "Job descriptions mentioning skill",
-                    "skill": "Skill",
+                    "skill": "Keyword / candidate skill",
                 },
                 text="job_count",
                 color_discrete_sequence=["#3478F6"],
@@ -112,11 +109,11 @@ if query.strip():
                 margin=dict(l=8, r=16, t=16, b=8),
             )
             chart.update_traces(textposition="outside", cliponaxis=False)
-            st.plotly_chart(chart, use_container_width=True)
+            st.plotly_chart(chart, width="stretch")
 
             display_results = visible_skills.rename(
                 columns={
-                    "skill": "Skill",
+                    "skill": "Keyword / candidate skill",
                     "job_count": "Job descriptions",
                     "share_percent": "Share of matching jobs (%)",
                 }
@@ -124,7 +121,7 @@ if query.strip():
             display_results["Share of matching jobs (%)"] = (
                 display_results["Share of matching jobs (%)"].round(1)
             )
-            st.dataframe(display_results, hide_index=True, use_container_width=True)
+            st.dataframe(display_results, hide_index=True, width="stretch")
 
             csv_data = visible_skills.to_csv(index=False).encode("utf-8-sig")
             pdf_data = build_pdf_report(query.strip(), len(matching_jobs), visible_skills)
@@ -134,21 +131,21 @@ if query.strip():
                 data=csv_data,
                 file_name="recommended_skills.csv",
                 mime="text/csv",
-                use_container_width=True,
+                width="stretch",
             )
             pdf_column.download_button(
                 "Download results as PDF",
                 data=pdf_data,
                 file_name="recommended_skills.pdf",
                 mime="application/pdf",
-                use_container_width=True,
+                width="stretch",
             )
 
             with st.expander("View matching sample job descriptions"):
                 st.dataframe(
                     matching_jobs[["job_title", "job_description"]],
                     hide_index=True,
-                    use_container_width=True,
+                    width="stretch",
                 )
 else:
     st.info("Enter a job title to explore the sample descriptions and skill recommendations.")
