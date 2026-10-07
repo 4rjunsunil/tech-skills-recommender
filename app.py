@@ -42,7 +42,6 @@ except ValueError as error:
     st.stop()
 
 with st.sidebar:
-    st.header("About this demo")
     st.metric("Sample job descriptions", len(job_ads))
     st.caption(
         "The included listings are synthetic examples written for this demo. "

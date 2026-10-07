@@ -40,20 +40,3 @@ The CSV must contain:
 | `job_title` | Role title used to filter the postings |
 | `job_description` | Text processed by NLTK to extract recurring keywords |
 | `source_type` | Provenance label for the record |
-
-## Deploy on Streamlit Community Cloud
-
-The project is in GitHub and can be deployed without a separate build step:
-
-1. Sign in to [Streamlit Community Cloud](https://share.streamlit.io/) using the GitHub account that can access this repository.
-2. Choose **Create app**, then select `4rjunsunil/tech-skills-recommender`, the `main` branch, and `app.py` as the main file.
-3. Select **Deploy**. Streamlit Cloud installs the dependencies listed in `requirements.txt`.
-4. After deployment, open the generated app URL and test a role such as `Data Analyst`.
-
-The repository owner must complete these account-authorized steps; deployment cannot be performed from the local project alone.
-
-## Run tests
-
-```powershell
-python -m unittest discover -s tests -v
-```
