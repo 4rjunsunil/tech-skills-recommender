@@ -50,9 +50,9 @@ with st.sidebar:
     )
     st.divider()
     st.markdown(
-        "**How keywords are extracted**  \n"
-        "NLTK tokenizes each description and extracts recurring one-, two-, and "
-        "three-word keywords. Each keyword counts at most once per posting."
+        "**How skills are identified**  \n"
+        "NLTK tokenizes descriptions; recognized technical skill names and aliases "
+        "are counted at most once per posting. Generic phrases are excluded."
     )
     st.markdown(
         "**Data source**  \n"
@@ -75,17 +75,20 @@ if query.strip():
     else:
         skill_results = rank_skills(matching_jobs)
         if skill_results.empty:
-            st.info("No keywords were found in these descriptions.")
+            st.info(
+                "No recognized technical skills were found. The skill catalog may "
+                "need additional terms for this role."
+            )
         else:
-            st.subheader(f"Extracted keywords for “{query.strip()}”")
+            st.subheader(f"Technical skills for “{query.strip()}”")
             st.caption(
-                "Keywords are extracted from the descriptions, not matched against "
-                "a fixed skill dictionary. Some frequent terms may need human review "
-                "to confirm they are skills."
+                "Skills are identified using a maintained technical-skill vocabulary "
+                "and NLTK phrase matching. Unlisted skills will not appear; review "
+                "the source postings before treating counts as recommendations."
             )
             first, second = st.columns(2)
             first.metric("Matching job descriptions", len(matching_jobs))
-            second.metric("Keywords extracted", len(skill_results))
+            second.metric("Technical skills found", len(skill_results))
 
             top_n = st.slider(
                 "Number of skills to display",
@@ -101,7 +104,7 @@ if query.strip():
                 orientation="h",
                 labels={
                     "job_count": "Job descriptions mentioning skill",
-                    "skill": "Keyword / candidate skill",
+                    "skill": "Technical skill",
                 },
                 text="job_count",
                 color_discrete_sequence=["#3478F6"],
@@ -118,7 +121,7 @@ if query.strip():
 
             display_results = visible_skills.rename(
                 columns={
-                    "skill": "Keyword / candidate skill",
+                    "skill": "Technical skill",
                     "job_count": "Job descriptions",
                     "share_percent": "Share of matching jobs (%)",
                 }

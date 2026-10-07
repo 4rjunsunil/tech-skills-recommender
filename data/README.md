@@ -15,6 +15,8 @@ The project pins the source snapshot at commit [`99206394a348ce110e192cc2349fdcd
 
 Role groups can overlap when a title contains more than one role phrase; overlapping postings are stored only once, which is why the role counts sum to more than 356. The preparation script deterministically samples at most 80 postings per role, removes rows without a title or description, deduplicates by source job ID, and removes email addresses, URLs, and phone numbers from descriptions. Original titles and descriptions are retained for keyword analysis. The `source_type` column and this file provide dataset attribution.
 
+Skill extraction uses NLTK tokenization followed by matching against the maintained technical-skill vocabulary in `src/skills.py`. The source CSV also has a `skills_desc` field, but it was non-empty for only 1 of the 364 software-engineer-title postings inspected in the source, so it is not a reliable basis for this role's recommendations. Terms outside the vocabulary are not currently reported.
+
 ## Important limitations and rights
 
 These are historical postings, not live vacancies. Their scraped timestamps are mainly from November 2023; missing or invalid timestamps may also occur. Results show patterns in this sample and should not be presented as current labour-market demand.

@@ -36,30 +36,47 @@ class SkillAnalysisTests(unittest.TestCase):
         matches = filter_jobs_by_title(self.jobs, "data analyst")
         self.assertEqual(len(matches), 2)
         self.assertNotIn("Analyst - Data", matches["job_title"].tolist())
+        self.assertEqual(len(filter_jobs_by_title(self.jobs, "SDE")), 1)
 
     def test_keyword_counts_are_per_job_posting_not_raw_mentions(self):
         results = rank_skills(self.jobs.iloc[:2])
         counts = results.set_index("skill")["job_count"]
         self.assertEqual(counts["Python"], 2)
-        self.assertNotIn("SQL", counts.index)
-        self.assertNotIn("Power BI", counts.index)
+        self.assertEqual(counts["SQL"], 1)
+        self.assertEqual(counts["Power BI"], 1)
 
     def test_empty_search_and_empty_results_are_safe(self):
         self.assertTrue(filter_jobs_by_title(self.jobs, " ").empty)
         self.assertTrue(rank_skills(self.jobs.iloc[0:0]).empty)
 
-    def test_nltk_extraction_can_surface_terms_not_in_a_skill_dictionary(self):
+    def test_only_recognized_technical_skills_are_reported(self):
         jobs = pd.DataFrame(
             [
-                {"job_description": "Build Snowflake data pipelines."},
-                {"job_description": "Maintain Snowflake pipelines with SQL."},
+                {
+                    "job_description": "Design software and write code using Java and Snowflake."
+                },
+                {
+                    "job_description": "Design software, write code, and use Snowflake."
+                },
             ]
         )
         results = rank_skills(jobs)
         counts = results.set_index("skill")["job_count"]
         self.assertEqual(counts["Snowflake"], 2)
-        self.assertEqual(counts["Pipelines"], 2)
-        self.assertNotIn("Will", counts.index)
+        self.assertNotIn("Design", counts.index)
+        self.assertNotIn("Code", counts.index)
+
+    def test_java_does_not_match_java_in_javascript(self):
+        jobs = pd.DataFrame(
+            [
+                {"job_description": "Build frontend applications using JavaScript."},
+                {"job_description": "Build web applications using JavaScript."},
+            ]
+        )
+        results = rank_skills(jobs)
+        skills = set(results["skill"])
+        self.assertIn("JavaScript", skills)
+        self.assertNotIn("Java", skills)
 
     def test_multiword_technical_keyword_is_kept_as_a_phrase(self):
         jobs = pd.DataFrame(

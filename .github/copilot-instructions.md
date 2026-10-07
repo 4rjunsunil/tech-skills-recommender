@@ -14,7 +14,7 @@ Build a Python-powered data app that recommends top technical skills based on a 
 - Python
 - Streamlit
 - Pandas
-- NLTK for tokenizing descriptions and extracting recurring one-, two-, and three-word keywords without a fixed skills dictionary
+- NLTK for tokenizing descriptions and matching skill-name phrases
 - Plotly for visualisations
 - ReportLab for PDF exports
 
@@ -23,8 +23,9 @@ Build a Python-powered data app that recommends top technical skills based on a 
 - Store the prepared role-focused dataset in `data/job_ads.csv`; document its schema, source, license label, and limitations.
 - Keep a reproducible preparation script in `data/prepare_job_ads.py` for creating the subset from the downloaded source CSV.
 - Use Pandas to validate, clean, and preprocess CSV text data.
-- Use NLTK to tokenize descriptions and extract recurring keywords (candidate skills), rather than relying only on a hand-maintained skill dictionary.
-- Rank keywords by the number of matching job postings that mention them; count each keyword at most once per posting.
+- Use NLTK to tokenize descriptions and match technical-skill names and aliases from the vocabulary in `src/skills.py`; do not label arbitrary frequent text as skills.
+- Keep the skill vocabulary extensible and add aliases for recognized technologies when needed.
+- Rank recognized skills by the number of matching job postings that mention them; count each skill at most once per posting.
 - Present the output in a clear, user-friendly dashboard.
 - Keep code organised into modules if the app grows beyond a single file.
 - Clearly state that the included real postings are historical and are not live job-market evidence.
@@ -58,6 +59,6 @@ This project should be implemented as a working demo app that demonstrates the f
 
 ## Notes for future work
 - Add support for multiple job titles or multiple datasets.
-- Review extracted keywords to distinguish technical skills from other recurring terms.
+- Expand the technical-skill vocabulary using reviewed source postings.
 - Add filters for seniority, experience level, or industry.
 - Deploy the app on Streamlit Community Cloud.
