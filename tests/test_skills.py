@@ -111,6 +111,11 @@ class SkillAnalysisTests(unittest.TestCase):
                 },
                 {
                     "job_id": 2,
+                    "title": "Data Scientist / Product Analyst",
+                    "description": long_description,
+                },
+                {
+                    "job_id": 3,
                     "title": "Retail Associate",
                     "description": long_description,
                 },
@@ -122,11 +127,15 @@ class SkillAnalysisTests(unittest.TestCase):
             source.to_csv(source_path, index=False)
             prepared = prepare_dataset(source_path, output_path)
 
-        self.assertEqual(len(prepared), 1)
-        self.assertEqual(prepared.iloc[0]["job_title"], "Data Analyst")
-        self.assertNotIn("@", prepared.iloc[0]["job_description"])
-        self.assertNotIn("212-555-0198", prepared.iloc[0]["job_description"])
-        self.assertNotIn("https://", prepared.iloc[0]["job_description"])
+        self.assertEqual(len(prepared), 2)
+        self.assertEqual(prepared["job_title"].nunique(), 2)
+        self.assertIn("Data Analyst", prepared["job_title"].tolist())
+        self.assertIn(
+            "Data Scientist / Product Analyst", prepared["job_title"].tolist()
+        )
+        self.assertFalse(prepared["job_description"].str.contains("@").any())
+        self.assertFalse(prepared["job_description"].str.contains("212-555-0198").any())
+        self.assertFalse(prepared["job_description"].str.contains("https://").any())
 
     def test_pdf_export_returns_a_pdf_document(self):
         results = rank_skills(self.jobs.iloc[:2])

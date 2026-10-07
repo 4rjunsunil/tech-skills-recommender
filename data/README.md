@@ -11,9 +11,9 @@ The project pins the source snapshot at commit [`99206394a348ce110e192cc2349fdcd
 | Data Engineer | 80 |
 | Software Engineer | 80 |
 | Software Developer | 36 |
-| Product Analyst | 14 |
+| Product Analyst | 15 |
 
-The preparation script deterministically samples at most 80 postings per role, removes rows without a title or description, deduplicates by source job ID, and removes email addresses, URLs, and phone numbers from descriptions. Original titles and descriptions are retained for keyword analysis. The `source_type` column and this file provide dataset attribution.
+Role groups can overlap when a title contains more than one role phrase; overlapping postings are stored only once, which is why the role counts sum to more than 356. The preparation script deterministically samples at most 80 postings per role, removes rows without a title or description, deduplicates by source job ID, and removes email addresses, URLs, and phone numbers from descriptions. Original titles and descriptions are retained for keyword analysis. The `source_type` column and this file provide dataset attribution.
 
 ## Important limitations and rights
 

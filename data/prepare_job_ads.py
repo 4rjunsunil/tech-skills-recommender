@@ -27,12 +27,11 @@ PHONE_PATTERN = re.compile(
 )
 
 
-def assign_role(title: object) -> str | None:
+def roles_for_title(title: object) -> list[str]:
     title_text = str(title or "")
-    for role, pattern in ROLE_PATTERNS.items():
-        if pattern.search(title_text):
-            return role
-    return None
+    return [
+        role for role, pattern in ROLE_PATTERNS.items() if pattern.search(title_text)
+    ]
 
 
 def clean_description(description: object) -> str:
@@ -57,18 +56,22 @@ def prepare_dataset(source_path: Path, output_path: Path) -> pd.DataFrame:
         & jobs["job_description"].ne("")
         & jobs["job_description"].str.len().ge(80)
     ].copy()
-    jobs["dataset_role"] = jobs["job_title"].map(assign_role)
-    jobs = jobs.dropna(subset=["dataset_role"]).drop_duplicates(subset=["job_id"])
+    jobs["dataset_roles"] = jobs["job_title"].map(roles_for_title)
+    jobs = jobs[jobs["dataset_roles"].map(bool)].drop_duplicates(subset=["job_id"])
 
-    samples = [
-        group.sample(
-            n=min(len(group), MAX_POSTINGS_PER_ROLE),
-            random_state=RANDOM_SEED,
+    samples = []
+    for role in ROLE_PATTERNS:
+        group = jobs[jobs["dataset_roles"].map(lambda roles: role in roles)]
+        samples.append(
+            group.sample(
+                n=min(len(group), MAX_POSTINGS_PER_ROLE),
+                random_state=RANDOM_SEED,
+            )
         )
-        for _, group in jobs.groupby("dataset_role", sort=False)
-    ]
     subset = pd.concat(samples, ignore_index=True)
-    subset = subset.sort_values(["dataset_role", "job_title"], ignore_index=True)
+    subset = subset.drop_duplicates(subset=["job_id"]).sort_values(
+        "job_title", ignore_index=True
+    )
     result = subset.assign(source_type=SOURCE_TYPE)[
         ["job_title", "job_description", "source_type"]
     ]
@@ -92,7 +95,10 @@ def main() -> None:
     result = prepare_dataset(arguments.source_csv, arguments.output)
     print(f"Wrote {len(result)} postings to {arguments.output}")
     print("Postings per role:")
-    for role, count in result["job_title"].map(assign_role).value_counts().items():
+    for role in ROLE_PATTERNS:
+        count = result["job_title"].map(
+            lambda title: role in roles_for_title(title)
+        ).sum()
         print(f"  {role}: {count}")
 
 
