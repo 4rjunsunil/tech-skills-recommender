@@ -1,0 +1,76 @@
+"""Export analysis results as a downloadable PDF report."""
+
+from __future__ import annotations
+
+from io import BytesIO
+
+import pandas as pd
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import (
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
+
+
+def build_pdf_report(job_title: str, job_count: int, skills: pd.DataFrame) -> bytes:
+    """Create a compact PDF report for the selected role."""
+    buffer = BytesIO()
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=0.65 * inch,
+        leftMargin=0.65 * inch,
+        topMargin=0.65 * inch,
+        bottomMargin=0.65 * inch,
+    )
+    styles = getSampleStyleSheet()
+    content = [
+        Paragraph("Tech Skills Recommender", styles["Title"]),
+        Paragraph(f"Results for: {job_title}", styles["Heading2"]),
+        Paragraph(
+            f"Based on {job_count} matching sample job descriptions.",
+            styles["BodyText"],
+        ),
+        Spacer(1, 14),
+    ]
+
+    rows = [["Skill", "Job postings", "Share"]]
+    rows.extend(
+        [
+            [row.skill, str(row.job_count), f"{row.share_percent:.0f}%"]
+            for row in skills.itertuples(index=False)
+        ]
+    )
+    table = Table(rows, colWidths=[3.8 * inch, 1.4 * inch, 1.2 * inch])
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#183153")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F2F6FC")]),
+                ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#D9E2F0")),
+                ("ALIGN", (1, 1), (-1, -1), "RIGHT"),
+                ("PADDING", (0, 0), (-1, -1), 8),
+            ]
+        )
+    )
+    content.extend(
+        [
+            table,
+            Spacer(1, 14),
+            Paragraph(
+                "Note: the included job descriptions are synthetic demo data. "
+                "Results illustrate the analysis workflow and are not live labour-market data.",
+                styles["Italic"],
+            ),
+        ]
+    )
+    document.build(content)
+    return buffer.getvalue()

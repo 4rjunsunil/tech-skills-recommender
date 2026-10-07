@@ -1,0 +1,37 @@
+job_title,job_description,source_type
+Data Analyst,"Use SQL and Python to analyze business data, clean datasets with Pandas, and build reports in Tableau.",Synthetic demo data
+Data Analyst,"Create Excel reports, write SQL queries, and communicate trends through Power BI dashboards.",Synthetic demo data
+Data Analyst,"Analyze sales performance with Python, Excel, and statistics; prepare clear visualizations for stakeholders.",Synthetic demo data
+Data Analyst,"Clean and validate customer data using SQL and Python, then publish dashboards in Tableau.",Synthetic demo data
+Data Analyst,"Use Power BI, Excel, and SQL to create recurring reports and explain findings to business teams.",Synthetic demo data
+Data Analyst,"Explore product data with Pandas and Python, perform statistical analysis, and present results with Matplotlib.",Synthetic demo data
+Data Analyst,"Build SQL queries and Tableau dashboards; improve data quality through data cleaning and validation.",Synthetic demo data
+Data Analyst,"Analyze operational datasets with Excel, Python, and SQL, then share insights with stakeholders.",Synthetic demo data
+Data Analyst,"Prepare data visualizations in Power BI and use statistics to explain changes in customer behavior.",Synthetic demo data
+Data Analyst,"Use SQL, Pandas, and data cleaning to support business analysis and automated reporting.",Synthetic demo data
+Senior Data Analyst,"Lead data analysis projects using SQL and Python; coach teams on communicating evidence-based insights.",Synthetic demo data
+Senior Data Analyst,"Develop Tableau dashboards, analyze large datasets with SQL, and present recommendations to leaders.",Synthetic demo data
+Data Scientist,"Build machine learning models in Python with scikit-learn and evaluate them using statistics.",Synthetic demo data
+Data Scientist,"Apply Python, Pandas, and machine learning to customer problems; explain model results with visualizations.",Synthetic demo data
+Data Scientist,"Use SQL and Python for feature engineering, statistical analysis, and predictive modeling.",Synthetic demo data
+Data Scientist,"Develop NLP and machine learning solutions with PyTorch; communicate findings through clear charts.",Synthetic demo data
+Data Scientist,"Train machine learning models using TensorFlow and Python, and validate performance with statistical methods.",Synthetic demo data
+Data Scientist,"Analyze experiments with R and statistics; build reproducible machine learning workflows in Python.",Synthetic demo data
+Data Scientist,"Use NLP, scikit-learn, and Pandas to process text data and measure model quality.",Synthetic demo data
+Software Engineer,"Develop Java services and REST APIs, use Git for collaboration, and write automated tests.",Synthetic demo data
+Software Engineer,"Build web applications with JavaScript and Python; use PostgreSQL, Docker, and unit testing.",Synthetic demo data
+Software Engineer,"Create reliable APIs in Java, manage source code with Git, and deploy services on AWS.",Synthetic demo data
+Software Engineer,"Write Python services, integrate RESTful APIs, and use Docker and Linux in development.",Synthetic demo data
+Software Engineer,"Build JavaScript applications, test features, and collaborate through GitHub pull requests.",Synthetic demo data
+Software Engineer,"Develop backend systems with C#, SQL, and Azure; maintain automated testing and documentation.",Synthetic demo data
+Software Engineer,"Design scalable services in Java and C++; use Kubernetes, Docker, and Linux for deployments.",Synthetic demo data
+Data Engineer,"Build data pipelines with Python, SQL, and Apache Spark; orchestrate workloads in AWS.",Synthetic demo data
+Data Engineer,"Maintain ETL workflows with PySpark and PostgreSQL, using Docker and Git for reproducible releases.",Synthetic demo data
+Data Engineer,"Create cloud data platforms on Azure with Python, SQL, and Apache Spark.",Synthetic demo data
+Data Engineer,"Develop batch pipelines in Python and Spark; store application data in MongoDB and PostgreSQL.",Synthetic demo data
+Data Engineer,"Use SQL, Python, and AWS to monitor data quality and deliver trusted datasets to analysts.",Synthetic demo data
+Data Engineer,"Deploy data processing services with Kubernetes and Docker on Linux-based cloud infrastructure.",Synthetic demo data
+Product Analyst,"Analyze product usage with SQL and statistics; build Tableau dashboards for product teams.",Synthetic demo data
+Product Analyst,"Use Python, Excel, and data visualization to evaluate experiments and communicate product insights.",Synthetic demo data
+Product Analyst,"Write SQL queries, clean event data, and create Power BI reports about customer journeys.",Synthetic demo data
+Product Analyst,"Apply statistical analysis and Python to assess feature adoption and share recommendations.",Synthetic demo data
